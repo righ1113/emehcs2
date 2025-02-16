@@ -1,0 +1,50 @@
+AllCops:
+  TargetRubyVersion: 3.3.5
+
+MethodLength:
+  CountComments: false
+  Max: 80
+
+UselessAssignment:
+  Enabled: false
+
+Style/Semicolon:
+  Enabled: false
+
+CyclomaticComplexity:
+  Max: 50
+
+AbcSize:
+  Max: 177
+
+PerceivedComplexity:
+  Max: 50
+
+Naming/MethodParameterName:
+  Enabled: false
+
+Metrics/ModuleLength:
+  Max: 200
+Metrics/ClassLength:
+  Max: 200
+
+Style/WordArray:
+  Enabled: false
+
+Layout/LineLength:
+  Max: 124
+
+Style/SpecialGlobalVars:
+  Enabled: false
+
+Metrics/BlockLength:
+  Max: 50
+
+Layout/HashAlignment:
+  Enabled: false
+
+Style/EndOfLine:
+  EnforcedStyle: lf
+
+Metrics/BlockNesting:
+  Max: 4
