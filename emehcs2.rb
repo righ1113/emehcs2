@@ -25,35 +25,20 @@ class EmehcsBase2
     @stack = []
   end
 
-  # abstract_method
-  def read(str)
-    raise NotImplementedError, 'Subclasses must implement abstract_method'
-  end
-
-  # abstract_method
-  def show(expr)
-    raise NotImplementedError, 'Subclasses must implement abstract_method'
-  end
-
-  # abstract_method
-  def eval_(expr)
-    raise NotImplementedError, 'Subclasses must implement abstract_method'
-  end
-
   private
 
   def common1
     y1 = @stack.pop
     raise '引数が不足しています' if y1.nil?
 
-    eval_ y1
+    eval_core y1, false
   end
 
   def common2
     y1 = @stack.pop; y2 = @stack.pop
     raise '引数が不足しています' if y1.nil? || y2.nil?
 
-    [eval_(y1), eval_(y2)]
+    [eval_core(y1, false), eval_core(y2, false)]
   end
 
   def plus      = (y1, y2 = common2; @stack.push y1 + y2)
@@ -86,7 +71,7 @@ class Emehcs2 < EmehcsBase2
   # Expr = Int | Sym | [Expr]
   def read(str) = read_ str.gsub(' ', ', ')
   def show(expr) = expr.to_s.gsub(',', '')
-  def eval_(expr) = eval_core expr, false
+  def eval_(expr) = (@stack = []; eval_core expr, false)
 
   private
 
@@ -96,7 +81,7 @@ class Emehcs2 < EmehcsBase2
     in Integer then (@stack.push expr; expr)
     in Symbol  then (parse_symbol expr.to_s, em; expr.to_s)
     # Array
-    in []      then @stack.pop
+    in []      then @stack.last
     in [x, *xs]
       eval_core x, xs.empty?
       eval_core xs, false
@@ -122,11 +107,11 @@ class Emehcs2 < EmehcsBase2
     if s[0] == '>' # 関数束縛
       @env[s[1..]] = pop_raise
       @stack.push s[1..] if em # REPL に関数名を出力する
-    elsif s[0] == '=' # 変数束縛
-      pop = pop_raise
-      # 変数束縛のときは、Array を実行する
-      @env[s[1..]] = pop.is_a?(Array) ? eval_core(pop, false) : pop
-      @stack.push s[1..] if em # REPL に変数名を出力する
+    # elsif s[0] == '=' # 変数束縛
+    #   pop = pop_raise
+    #   # 変数束縛のときは、Array を実行する
+    #   @env[s[1..]] = pop.is_a?(Array) ? eval_core(pop, false) : pop
+    #   @stack.push s[1..] if em # REPL に変数名を出力する
     elsif @env[s].is_a?(Array)
       # name が Array を参照しているときも、Array の最後だったら実行する、でなければ実行せずに積む
       if em
@@ -136,7 +121,6 @@ class Emehcs2 < EmehcsBase2
       end
     else
       @stack.push @env[s] # ふつうの name
-      @stack.push s
     end
   end
 
