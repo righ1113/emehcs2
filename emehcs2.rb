@@ -23,6 +23,7 @@ class EmehcsBase2
   def initialize
     @env   = {}
     @stack = []
+    @primitive_run = 0
   end
 
   private
@@ -41,13 +42,21 @@ class EmehcsBase2
     [eval_core([y1]), eval_core([y2])]
   end
 
-  def plus      = (y1, y2 = common2; @stack.push y1 + y2)
+  def my_if
+    @stack.pop if common1 == 'false'
+    ret = common1
+    puts "if: #{ret}"
+    @stack.push ret
+  end
+
+  def eq        = (y1, y2 = common2; puts "==: y1=#{y1}, y2=#{y2}"; @stack.push(y2 == y1 ? 'true' : 'false'))
+  def plus      = (y1, y2 = common2; puts "+: y1=#{y1}, y2=#{y2}"; @stack.push y1 + y2)
+
   def minus     = (y1, y2 = common2; @stack.push y2 - y1)
   def mul       = (y1, y2 = common2; @stack.push y1 * y2)
   def div       = (y1, y2 = common2; @stack.push y2 / y1)
   def mod       = (y1, y2 = common2; @stack.push y2 % y1)
   def lt        = (y1, y2 = common2; @stack.push(y2 < y1 ? 'true' : 'false'))
-  def eq        = (y1, y2 = common2; @stack.push(y2 == y1 ? 'true' : 'false'))
   def s_append  = (y1, y2 = common2; @stack.push y1[0..-3] + y2)
   def my_sample = (y1 = common1; @stack.push y1[0..-2].sample)
   def error     = (y1 = common1; @stack.push raise y1.to_s)
@@ -104,33 +113,43 @@ class Emehcs2 < EmehcsBase2
     end
   end
 
-  def parse_symbol(s, em)
-    return if parse_symbol_sub s, em
+  def parse_symbol(s, em, name = s[1..])
+    @primitive_run += 1
+    ret = parse_symbol_sub s, em
+    @primitive_run -= 1
+    return s if ret
 
-    if s[0] == '>' # 関数束縛
-      @env[s[1..]] = pop_raise
-      @stack.push s[1..] if em # REPL に関数名を出力する
+    if s[0] == 'F' # 関数束縛
+      ret = pop_raise
+      puts "hoge3: #{name}, #{@env[name]}, #{ret}"
+      ret.map! { |x| x == name.to_sym ? @env[name] : x } if @env[name].is_a?(Integer)
+      @env[name] = ret
+      @stack.push name if em # REPL に関数名を出力する
     elsif @env[s].is_a?(Array)
       # name が Array を参照しているときも、Array の最後だったら実行する、でなければ実行せずに積む
-      if em
-        @stack.push eval_core(Const.deep_copy(@env[s]))
+      if em || !@primitive_run.zero?
+        input = Const.deep_copy @env[s]
+        input = input.to_sym if input.is_a?(String)
+        ret = eval_core Const.deep_copy @env[s]
+        @env[s] = ret
+        # puts "hoge1: #{@env[s]}"
+        @stack.push ret
       else
-        @stack.push           Const.deep_copy(@env[s])
+        # puts "hoge2: #{s}, #{em}, #{@env[s]}"
+        @stack.push Const.deep_copy @env[s]
       end
     else
       @stack.push @env[s] # ふつうの name
     end
+    s
   end
 end
 
 # メイン関数としたもの
 if __FILE__ == $PROGRAM_NAME
-  # emehcs = Emehcs.new
-  # repl = Repl.new emehcs
-  # repl.prelude
-  # repl.repl
   emehcs2 = Emehcs2.new
-  p emehcs2.read('[[3 4 5] 1 2 :+]')
-  p emehcs2.show([3, 4, :foo])
-  p emehcs2.run('[3 4 :+]')
+  # p emehcs2.read('[[3 4 5] 1 2 :+]')
+  # p emehcs2.show([3, 4, :foo])
+  # p emehcs2.run('[3 4 :+]')
+  p emehcs2.run '[[:Fx [[:x 1 :+] :g] :x [:x 500 :==] :if] :Fg 0 :g]'
 end
