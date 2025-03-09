@@ -45,12 +45,12 @@ class EmehcsBase2
   def my_if
     @stack.pop if common1 == 'false'
     ret = common1
-    puts "if: #{ret}"
+    # puts "if: #{ret}"
     @stack.push ret
   end
 
-  def eq        = (y1, y2 = common2; puts "==: y1=#{y1}, y2=#{y2}"; @stack.push(y2 == y1 ? 'true' : 'false'))
-  def plus      = (y1, y2 = common2; puts "+: y1=#{y1}, y2=#{y2}"; @stack.push y1 + y2)
+  def eq        = (y1, y2 = common2; @stack.push(y2 == y1 ? 'true' : 'false'))
+  def plus      = (y1, y2 = common2; @stack.push y1 + y2)
 
   def minus     = (y1, y2 = common2; @stack.push y2 - y1)
   def mul       = (y1, y2 = common2; @stack.push y1 * y2)
@@ -121,15 +121,15 @@ class Emehcs2 < EmehcsBase2
 
     if s[0] == 'F' # 関数束縛
       ret = pop_raise
-      puts "hoge3: #{name}, #{@env[name]}, #{ret}"
+      # puts "hoge3: #{name}, #{@env[name]}, #{ret}"
       ret.map! { |x| x == name.to_sym ? @env[name] : x } if @env[name].is_a?(Integer)
       @env[name] = ret
       @stack.push name if em # REPL に関数名を出力する
     elsif @env[s].is_a?(Array)
       # name が Array を参照しているときも、Array の最後だったら実行する、でなければ実行せずに積む
       if em || !@primitive_run.zero?
-        input = Const.deep_copy @env[s]
-        input = input.to_sym if input.is_a?(String)
+        # input = Const.deep_copy @env[s]
+        # input = input.to_sym if input.is_a?(String)
         ret = eval_core Const.deep_copy @env[s]
         @env[s] = ret
         # puts "hoge1: #{@env[s]}"
@@ -151,5 +151,5 @@ if __FILE__ == $PROGRAM_NAME
   # p emehcs2.read('[[3 4 5] 1 2 :+]')
   # p emehcs2.show([3, 4, :foo])
   # p emehcs2.run('[3 4 :+]')
-  p emehcs2.run '[[:Fx [[:x 1 :+] :g] :x [:x 500 :==] :if] :Fg 0 :g]'
+  p emehcs2.run '[[:Fx [[:x 1 :+] :g] :x [:x 1000 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
 end

@@ -41,6 +41,22 @@ module Const
   # func?
   def func?(x)  = x.is_a?(Array) && x.last != :q
 
+  # 遅延評価
+  class Delay
+    def initialize(&fn)
+      @func = fn
+    end
+
+    def force
+      @func.call
+    end
+
+    def self.trcall(value)
+      value = value.force while value.is_a?(Delay)
+      value
+    end
+  end
+
   # Const クラス
   class Const
     def self.deep_copy(arr)
