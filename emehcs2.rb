@@ -31,14 +31,14 @@ class EmehcsBase2
     y1 = @stack.pop
     raise '引数が不足しています' if y1.nil?
 
-    eval_core y1, false
+    eval_core [y1]
   end
 
   def common2
     y1 = @stack.pop; y2 = @stack.pop
     raise '引数が不足しています' if y1.nil? || y2.nil?
 
-    [eval_core(y1, false), eval_core(y2, false)]
+    [eval_core([y1]), eval_core([y2])]
   end
 
   def plus      = (y1, y2 = common2; @stack.push y1 + y2)
@@ -71,23 +71,26 @@ class Emehcs2 < EmehcsBase2
   # Expr = Int | Sym | [Expr]
   def read(str) = read_ str.gsub(' ', ', ')
   def show(expr) = expr.to_s.gsub(',', '')
-  def eval_(expr) = (@stack = []; eval_core expr, false)
+  def run(str) = (@stack = []; show eval_core read str)
 
   private
 
-  # メインルーチン
-  def eval_core(expr, em)
-    case expr
-    in Integer then (@stack.push expr; expr)
-    in Symbol  then (parse_symbol expr.to_s, em; expr.to_s)
-    # Array
-    in []      then @stack.last
+  # メインルーチン、 code は Array
+  def eval_core(code)
+    case code
+    in [] then @stack.pop
     in [x, *xs]
-      eval_core x, xs.empty?
-      eval_core xs, false
-    else raise '予期しない型'
+      case x
+      in Integer then @stack.push x
+      in Array   then parse_array x, xs.empty?
+      in Symbol  then parse_symbol x.to_s, xs.empty?
+      else raise ERROR_MESSAGES[:unexpected_type]
+      end
+      eval_core xs
     end
   end
+
+  def parse_array(x, em) = @stack.push(em && func?(x) ? eval_core(x) : x)
 
   def parse_symbol_sub(s, em)
     if    EMEHCS2_FUNC_TABLE.key? s
@@ -107,28 +110,16 @@ class Emehcs2 < EmehcsBase2
     if s[0] == '>' # 関数束縛
       @env[s[1..]] = pop_raise
       @stack.push s[1..] if em # REPL に関数名を出力する
-    # elsif s[0] == '=' # 変数束縛
-    #   pop = pop_raise
-    #   # 変数束縛のときは、Array を実行する
-    #   @env[s[1..]] = pop.is_a?(Array) ? eval_core(pop, false) : pop
-    #   @stack.push s[1..] if em # REPL に変数名を出力する
     elsif @env[s].is_a?(Array)
       # name が Array を参照しているときも、Array の最後だったら実行する、でなければ実行せずに積む
       if em
-        @stack.push eval_core(Const.deep_copy(@env[s]), false)
+        @stack.push eval_core(Const.deep_copy(@env[s]))
       else
         @stack.push           Const.deep_copy(@env[s])
       end
     else
       @stack.push @env[s] # ふつうの name
     end
-  end
-
-  def pop_raise
-    pop = @stack.pop
-    raise '引数が不足しています' if pop.nil?
-
-    pop
   end
 end
 
@@ -141,5 +132,5 @@ if __FILE__ == $PROGRAM_NAME
   emehcs2 = Emehcs2.new
   p emehcs2.read('[[3 4 5] 1 2 :+]')
   p emehcs2.show([3, 4, :foo])
-  p emehcs2.eval_([3, 4, :+])
+  p emehcs2.run('[3 4 :+]')
 end
