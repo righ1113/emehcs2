@@ -90,41 +90,45 @@ class Emehcs2 < EmehcsBase2
     in [] then @stack.pop
     in [x, *xs]
       case x
-      in Integer then @stack.push x
-      in Array   then parse_array x, xs.empty?
-      in Symbol  then parse_symbol x.to_s, xs.empty?
+      in Integer then @stack.push x; eval_core xs
+      in Array   then parse_array x, xs
+      in Symbol  then parse_symbol x.to_s, xs
       else raise ERROR_MESSAGES[:unexpected_type]
       end
+    end
+  end
+
+  def parse_array(x, xs, em = xs.empty?)
+    if em && func?(x)
+      @stack.push eval_core(x)
+      eval_core xs
+    else
+      @stack.push x
       eval_core xs
     end
   end
 
-  def parse_array(x, em) = @stack.push(em && func?(x) ? eval_core(x) : x)
-
   def parse_symbol_sub(s, em)
+    @primitive_run += 1
     if    EMEHCS2_FUNC_TABLE.key? s
       em ? send(EMEHCS2_FUNC_TABLE[s]) : @stack.push(s)             # プリミティブ関数実行1
-      true
     elsif EMEHCS2_FUNC_TABLE.key? @env[s]
       em ? send(EMEHCS2_FUNC_TABLE[@env[s]]) : @stack.push(@env[s]) # プリミティブ関数実行2
-      true
-    else
-      false
     end
+    @primitive_run -= 1
   end
 
-  def parse_symbol(s, em, name = s[1..])
-    @primitive_run += 1
-    ret = parse_symbol_sub s, em
-    @primitive_run -= 1
-    return s if ret
-
-    if s[0] == 'F' # 関数束縛
+  def parse_symbol(s, xs, em = xs.empty?, name = s[1..])
+    if EMEHCS2_FUNC_TABLE.key?(s) || EMEHCS2_FUNC_TABLE.key?(@env[s])
+      parse_symbol_sub s, em
+      eval_core xs
+    elsif s[0] == 'F' # 関数束縛
       ret = pop_raise
       # puts "hoge3: #{name}, #{@env[name]}, #{ret}"
       ret.map! { |x| x == name.to_sym ? @env[name] : x } if @env[name].is_a?(Integer)
       @env[name] = ret
       @stack.push name if em # REPL に関数名を出力する
+      eval_core xs
     elsif @env[s].is_a?(Array)
       # name が Array を参照しているときも、Array の最後だったら実行する、でなければ実行せずに積む
       if em || !@primitive_run.zero?
@@ -134,14 +138,16 @@ class Emehcs2 < EmehcsBase2
         @env[s] = ret
         # puts "hoge1: #{@env[s]}"
         @stack.push ret
+        eval_core xs
       else
         # puts "hoge2: #{s}, #{em}, #{@env[s]}"
         @stack.push Const.deep_copy @env[s]
+        eval_core xs
       end
     else
       @stack.push @env[s] # ふつうの name
+      eval_core xs
     end
-    s
   end
 end
 
@@ -151,5 +157,5 @@ if __FILE__ == $PROGRAM_NAME
   # p emehcs2.read('[[3 4 5] 1 2 :+]')
   # p emehcs2.show([3, 4, :foo])
   # p emehcs2.run('[3 4 :+]')
-  p emehcs2.run '[[:Fx [[:x 1 :+] :g] :x [:x 1000 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
+  p emehcs2.run '[[:Fx [[:x 1 :+] :g] :x [:x 200 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
 end

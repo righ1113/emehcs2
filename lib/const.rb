@@ -57,6 +57,29 @@ module Const
     end
   end
 
+  # 末尾再帰をスタックオーバーフローせずに実行する
+  class Trcall
+    alias foo eval
+    def initialize(name)
+      @first = true
+      foo <<"DEF"
+    def #{name}(*args)
+      if @first
+        @first = false
+        value = super(*args)
+        while value.instance_of?(Proc)
+          value = value.call
+        end
+        @first = true
+        value
+      else
+        proc { super(*args) }
+      end
+    end
+DEF
+    end
+  end
+
   # Const クラス
   class Const
     def self.deep_copy(arr)
