@@ -87,10 +87,10 @@ class Emehcs2 < EmehcsBase2
   # メインルーチン、 code は Array
   def eval_core(code)
     case code
-    in [] then @stack.pop
+    in [] then yield @stack.pop
     in [x, *xs]
       case x
-      in Integer then @stack.push x; eval_core xs
+      in Integer then @stack.push x; eval_core(xs) { |y| y }
       in Array   then parse_array x, xs
       in Symbol  then parse_symbol x.to_s, xs
       else raise ERROR_MESSAGES[:unexpected_type]
@@ -100,11 +100,13 @@ class Emehcs2 < EmehcsBase2
 
   def parse_array(x, xs, em = xs.empty?)
     if em && func?(x)
-      @stack.push eval_core(x)
-      eval_core xs
+      eval_core(x) do |ret|
+        @stack.push ret
+        eval_core(xs) { |y| y }
+      end
     else
       @stack.push x
-      eval_core xs
+      eval_core(xs) { |y| y }
     end
   end
 
@@ -124,51 +126,57 @@ class Emehcs2 < EmehcsBase2
     #   eval_core xs
     if em && (s == '+' || @env[s] == '+')
       @primitive_run += 1
-      y1 = eval_core [pop_raise]
-      y2 = eval_core [pop_raise]
-      @stack.push y1 + y2
-      @primitive_run -= 1
-      eval_core xs
+      eval_core([pop_raise]) do |y1|
+        eval_core([pop_raise]) do |y2|
+          @stack.push y1 + y2
+          @primitive_run -= 1
+          eval_core(xs) { |y| y }
+        end
+      end
     elsif em && (s == '==' || @env[s] == '==')
       @primitive_run += 1
-      y1 = eval_core [pop_raise]
-      y2 = eval_core [pop_raise]
-      @stack.push y2 == y1 ? 'true' : 'false'
-      @primitive_run -= 1
-      eval_core xs
+      eval_core([pop_raise]) do |y1|
+        eval_core([pop_raise]) do |y2|
+          @stack.push y2 == y1 ? 'true' : 'false'
+          @primitive_run -= 1
+          eval_core(xs) { |y| y }
+        end
+      end
     elsif em && (s == 'if' || @env[s] == 'if')
       @primitive_run += 1
-      y1 = eval_core [pop_raise]
-      @stack.pop if y1 == 'false'
-      y2 = eval_core [pop_raise]
-      @stack.push y2
-      @primitive_run -= 1
-      eval_core xs
+      eval_core([pop_raise]) do |y1|
+        @stack.pop if y1 == 'false'
+        eval_core([pop_raise]) do |y2|
+          @stack.push y2
+          @primitive_run -= 1
+          eval_core(xs) { |y| y }
+        end
+      end
     elsif s[0] == 'F' # 関数束縛
       ret = pop_raise
       # puts "hoge3: #{name}, #{@env[name]}, #{ret}"
       ret.map! { |x| x == name.to_sym ? @env[name] : x } if @env[name].is_a?(Integer)
       @env[name] = ret
       @stack.push name if em # REPL に関数名を出力する
-      eval_core xs
+      eval_core(xs) { |y| y }
     elsif @env[s].is_a?(Array)
       # name が Array を参照しているときも、Array の最後だったら実行する、でなければ実行せずに積む
       if em || !@primitive_run.zero?
         # input = Const.deep_copy @env[s]
         # input = input.to_sym if input.is_a?(String)
-        ret = eval_core Const.deep_copy @env[s]
-        @env[s] = ret
-        # puts "hoge1: #{@env[s]}"
-        @stack.push ret
-        eval_core xs
+        eval_core(Const.deep_copy(@env[s])) do |ret2|
+          @env[s] = ret2
+          @stack.push ret2
+          eval_core(xs) { |y| y }
+        end
       else
         # puts "hoge2: #{s}, #{em}, #{@env[s]}"
         @stack.push Const.deep_copy @env[s]
-        eval_core xs
+        eval_core(xs) { |y| y }
       end
     else
       @stack.push @env[s] # ふつうの name
-      eval_core xs
+      eval_core(xs) { |y| y }
     end
   end
 end
@@ -179,5 +187,5 @@ if __FILE__ == $PROGRAM_NAME
   # p emehcs2.read('[[3 4 5] 1 2 :+]')
   # p emehcs2.show([3, 4, :foo])
   # p emehcs2.run('[3 4 :+]')
-  p emehcs2.run '[[:Fx [[:x 1 :+] :g] :x [:x 500 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
+  p emehcs2.run '[[:Fx [[:x 1 :+] :g] :x [:x 20000 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
 end
