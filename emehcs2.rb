@@ -119,8 +119,30 @@ class Emehcs2 < EmehcsBase2
   end
 
   def parse_symbol(s, xs, em = xs.empty?, name = s[1..])
-    if EMEHCS2_FUNC_TABLE.key?(s) || EMEHCS2_FUNC_TABLE.key?(@env[s])
-      parse_symbol_sub s, em
+    # if EMEHCS2_FUNC_TABLE.key?(s) || EMEHCS2_FUNC_TABLE.key?(@env[s])
+    #   parse_symbol_sub s, em
+    #   eval_core xs
+    if em && (s == '+' || @env[s] == '+')
+      @primitive_run += 1
+      y1 = eval_core [pop_raise]
+      y2 = eval_core [pop_raise]
+      @stack.push y1 + y2
+      @primitive_run -= 1
+      eval_core xs
+    elsif em && (s == '==' || @env[s] == '==')
+      @primitive_run += 1
+      y1 = eval_core [pop_raise]
+      y2 = eval_core [pop_raise]
+      @stack.push y2 == y1 ? 'true' : 'false'
+      @primitive_run -= 1
+      eval_core xs
+    elsif em && (s == 'if' || @env[s] == 'if')
+      @primitive_run += 1
+      y1 = eval_core [pop_raise]
+      @stack.pop if y1 == 'false'
+      y2 = eval_core [pop_raise]
+      @stack.push y2
+      @primitive_run -= 1
       eval_core xs
     elsif s[0] == 'F' # 関数束縛
       ret = pop_raise
@@ -157,5 +179,5 @@ if __FILE__ == $PROGRAM_NAME
   # p emehcs2.read('[[3 4 5] 1 2 :+]')
   # p emehcs2.show([3, 4, :foo])
   # p emehcs2.run('[3 4 :+]')
-  p emehcs2.run '[[:Fx [[:x 1 :+] :g] :x [:x 200 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
+  p emehcs2.run '[[:Fx [[:x 1 :+] :g] :x [:x 500 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
 end
