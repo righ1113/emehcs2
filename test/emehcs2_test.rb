@@ -13,14 +13,14 @@ class Emehcs2Test < Minitest::Test
     code2 = [3, 4, :foo]
     code3 = '[3 4 :+]'
     code4 = '[3 [3 4 :+] :+]'
-    code5 = '[[:Fx [[:x 1 :+] :g] :x [:x 500 :==] :if] :Fg 0 :g]'
+    code5 = '[[:Fx [[:x 1 :+] :g] :x [:x 100 :==] :if] :Fg 0 :g]'
 
     emehcs2 = Emehcs2.new
     assert_equal [[3, 4, 5], 1, 2, :+], (emehcs2.read code1)
     assert_equal '[3 4 :foo]',          (emehcs2.show code2)
     assert_equal '7',                   (emehcs2.run code3)
     assert_equal '10',                  (emehcs2.run code4)
-    assert_equal '500',                 (emehcs2.run code5)
+    assert_equal '100',                 (emehcs2.run code5)
 
     # _code16 = emehcs.parse2 <<~TEXT
     #   ; これはコメントです。

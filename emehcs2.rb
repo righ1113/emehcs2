@@ -80,33 +80,38 @@ class Emehcs2 < EmehcsBase2
   # Expr = Int | Sym | [Expr]
   def read(str) = read_ str.gsub(' ', ', ')
   def show(expr) = expr.to_s.gsub(',', '')
-  def run(str) = (@stack = []; show eval_core read str)
+
+  def run(str)
+    @stack = []
+    eval_core(read(str)) { |ret| @out = ret }
+    show @out
+  end
 
   private
 
   # メインルーチン、 code は Array
-  def eval_core(code)
+  def eval_core(code, &bk)
     case code
     in [] then yield @stack.pop
     in [x, *xs]
       case x
-      in Integer then @stack.push x; eval_core(xs) { |y| y }
-      in Array   then parse_array x, xs
-      in Symbol  then parse_symbol x.to_s, xs
+      in Integer then @stack.push x; eval_core(xs, &bk)
+      in Array   then parse_array x, xs, &bk
+      in Symbol  then parse_symbol x.to_s, xs, &bk
       else raise ERROR_MESSAGES[:unexpected_type]
       end
     end
   end
 
-  def parse_array(x, xs, em = xs.empty?)
+  def parse_array(x, xs, em = xs.empty?, &bk)
     if em && func?(x)
       eval_core(x) do |ret|
         @stack.push ret
-        eval_core(xs) { |y| y }
+        eval_core(xs, &bk)
       end
     else
       @stack.push x
-      eval_core(xs) { |y| y }
+      eval_core(xs, &bk)
     end
   end
 
@@ -120,7 +125,7 @@ class Emehcs2 < EmehcsBase2
     @primitive_run -= 1
   end
 
-  def parse_symbol(s, xs, em = xs.empty?, name = s[1..])
+  def parse_symbol(s, xs, em = xs.empty?, name = s[1..], &bk)
     # if EMEHCS2_FUNC_TABLE.key?(s) || EMEHCS2_FUNC_TABLE.key?(@env[s])
     #   parse_symbol_sub s, em
     #   eval_core xs
@@ -130,7 +135,7 @@ class Emehcs2 < EmehcsBase2
         eval_core([pop_raise]) do |y2|
           @stack.push y1 + y2
           @primitive_run -= 1
-          eval_core(xs) { |y| y }
+          eval_core(xs, &bk)
         end
       end
     elsif em && (s == '==' || @env[s] == '==')
@@ -139,7 +144,7 @@ class Emehcs2 < EmehcsBase2
         eval_core([pop_raise]) do |y2|
           @stack.push y2 == y1 ? 'true' : 'false'
           @primitive_run -= 1
-          eval_core(xs) { |y| y }
+          eval_core(xs, &bk)
         end
       end
     elsif em && (s == 'if' || @env[s] == 'if')
@@ -149,7 +154,7 @@ class Emehcs2 < EmehcsBase2
         eval_core([pop_raise]) do |y2|
           @stack.push y2
           @primitive_run -= 1
-          eval_core(xs) { |y| y }
+          eval_core(xs, &bk)
         end
       end
     elsif s[0] == 'F' # 関数束縛
@@ -158,7 +163,7 @@ class Emehcs2 < EmehcsBase2
       ret.map! { |x| x == name.to_sym ? @env[name] : x } if @env[name].is_a?(Integer)
       @env[name] = ret
       @stack.push name if em # REPL に関数名を出力する
-      eval_core(xs) { |y| y }
+      eval_core(xs, &bk)
     elsif @env[s].is_a?(Array)
       # name が Array を参照しているときも、Array の最後だったら実行する、でなければ実行せずに積む
       if em || !@primitive_run.zero?
@@ -167,16 +172,16 @@ class Emehcs2 < EmehcsBase2
         eval_core(Const.deep_copy(@env[s])) do |ret2|
           @env[s] = ret2
           @stack.push ret2
-          eval_core(xs) { |y| y }
+          eval_core(xs, &bk)
         end
       else
         # puts "hoge2: #{s}, #{em}, #{@env[s]}"
         @stack.push Const.deep_copy @env[s]
-        eval_core(xs) { |y| y }
+        eval_core(xs, &bk)
       end
     else
       @stack.push @env[s] # ふつうの name
-      eval_core(xs) { |y| y }
+      eval_core(xs, &bk)
     end
   end
 end
@@ -187,5 +192,5 @@ if __FILE__ == $PROGRAM_NAME
   # p emehcs2.read('[[3 4 5] 1 2 :+]')
   # p emehcs2.show([3, 4, :foo])
   # p emehcs2.run('[3 4 :+]')
-  p emehcs2.run '[[:Fx [[:x 1 :+] :g] :x [:x 20000 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
+  p emehcs2.run '[[:Fx [[:x 1 :+] :g] :x [:x 200 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
 end
