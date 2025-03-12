@@ -1,0 +1,13 @@
+(=out =pc =mem =mar =pro
+  ((pro length) 1 -) =max
+    (pro pc !!) =op
+      (0 "{" -1 0  (pc 1 -) pro z) >move_pc2
+        (0 "}" 1 max (pc 1 +) pro z) >move_pc1
+          ((pro mar mem (pc 1 +) out bf0) out (pc max ==) ?) >j
+            ((((((j (move_pc2 =pc j) (((mem mar !!) 0 !=) (op "}" ==) &&) ?)
+                    (move_pc1 =pc j) (((mem mar !!) 0 ==) (op "{" ==) &&) ?)
+                ((out ((mem mar !!) chr) cons)  =out j) (op "." ==) ?)
+                  ((mem mar -1 up_p)              =mem j) (op "-" ==) ?)
+                    ((mem mar 1 up_p)               =mem j) (op "+" ==) ?)
+                      ((mar 1 -)                      =mar j) (op "<" ==) ?)
+                        ((mar 1 +)                      =mar j) (op ">" ==) ?) >bf0

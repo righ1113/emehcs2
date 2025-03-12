@@ -1,0 +1,5 @@
+(=pro =i =stop =sign ={} =d
+  (pro i !!) =pro_i
+    ((d (d sign -) (pro_i "}" ==) ?) (d sign +) (pro_i "{" ==) ?) =d2
+      (d2 {} sign stop (i sign +) pro z) >rec
+        (rec ("pro_edge" error) (i stop ==) ?) i ((d 0 ==) (pro_i {} ==) &&) ?) >z

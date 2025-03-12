@@ -56,6 +56,21 @@ class EmehcsBase2
           eval_core(xs, &bk)
         end
       end
+    elsif em && (s == 'and' || @env[s] == 'and')
+      @primitive_run += 1
+      eval_core([pop_raise]) do |y1|
+        if y1 == 'false'
+          @stack.push 'false'
+          @primitive_run -= 1
+          eval_core(xs, &bk)
+        else
+          eval_core([pop_raise]) do |y2|
+            @stack.push y2
+            @primitive_run -= 1
+            eval_core(xs, &bk)
+          end
+        end
+      end
     elsif s[0] == 'F' # 関数束縛
       ret = pop_raise
       ret.map! { |x| x == name.to_sym ? @env[name] : x } if @env[name].is_a?(Integer)
@@ -75,9 +90,12 @@ class EmehcsBase2
         @stack.push Const.deep_copy @env[s]
         eval_core(xs, &bk)
       end
-    else
+    elsif !@env[s].nil?
       @stack.push @env[s] # s が変数名
       eval_core(xs, &bk)
+    else
+      @stack.push s
+      eval_core(xs, &bk) # 純粋シンボル
     end
   end
 end
