@@ -19,7 +19,6 @@ require './lib/const'
 # EmehcsBase2 クラス
 class EmehcsBase2
   include Const
-
   def initialize
     @env   = {}
     @stack = []
@@ -28,107 +27,7 @@ class EmehcsBase2
 
   private
 
-  def common1
-    y1 = @stack.pop
-    raise '引数が不足しています' if y1.nil?
-
-    eval_core [y1]
-  end
-
-  def common2
-    y1 = @stack.pop; y2 = @stack.pop
-    raise '引数が不足しています' if y1.nil? || y2.nil?
-
-    [eval_core([y1]), eval_core([y2])]
-  end
-
-  def my_if
-    @stack.pop if common1 == 'false'
-    ret = common1
-    # puts "if: #{ret}"
-    @stack.push ret
-  end
-
-  def eq        = (y1, y2 = common2; @stack.push(y2 == y1 ? 'true' : 'false'))
-  def plus      = (y1, y2 = common2; @stack.push y1 + y2)
-
-  def minus     = (y1, y2 = common2; @stack.push y2 - y1)
-  def mul       = (y1, y2 = common2; @stack.push y1 * y2)
-  def div       = (y1, y2 = common2; @stack.push y2 / y1)
-  def mod       = (y1, y2 = common2; @stack.push y2 % y1)
-  def lt        = (y1, y2 = common2; @stack.push(y2 < y1 ? 'true' : 'false'))
-  def s_append  = (y1, y2 = common2; @stack.push y1[0..-3] + y2)
-  def my_sample = (y1 = common1; @stack.push y1[0..-2].sample)
-  def error     = (y1 = common1; @stack.push raise y1.to_s)
-  def car       = (y1 = common1; z = y1[0..-2]; @stack.push z[0])
-  def cdr       = (y1 = common1; @stack.push y1[1..])
-  def cons      = (y1, y2 = common2; @stack.push y2.unshift(y1);)
-  # def my_true   = my_true_false true
-  # def my_false  = my_true_false false
-  # def timer1    = timer 1
-  # def timer2    = timer 2
-  # def cmd       = (y1 = common1; system(y1[0..-3].gsub('%', ' ')); @stack.push($?))
-  # 末尾の :q を除く
-  # def eval      = (y1 = common1; @code_len = 0; @stack.push parse_run(y1[0..-2]))
-  # def eq2       = (y1, y2 = common2; @stack.push(run_after(y2.to_s) == run_after(y1.to_s) ? 'true' : 'false'))
-end
-
-# Emehcs2 クラス 相互に呼び合っているから、継承しかないじゃん
-class Emehcs2 < EmehcsBase2
-  alias read_ eval
-
-  # Expr = Int | Sym | [Expr]
-  def read(str) = read_ str.gsub(' ', ', ')
-  def show(expr) = expr.to_s.gsub(',', '')
-
-  def run(str)
-    @stack = []
-    eval_core(read(str)) { |ret| @out = ret }
-    show @out
-  end
-
-  private
-
-  # メインルーチン、 code は Array、末尾再帰を実現
-  def eval_core(code, &bk)
-    case code
-    in [] then yield @stack.pop
-    in [x, *xs]
-      case x
-      in Integer then @stack.push x; eval_core(xs, &bk)
-      in Array   then parse_array x, xs, &bk
-      in Symbol  then parse_symbol x.to_s, xs, &bk
-      else raise ERROR_MESSAGES[:unexpected_type]
-      end
-    end
-  end
-
-  def parse_array(x, xs, em = xs.empty?, &bk)
-    if em && func?(x)
-      eval_core(x) do |ret|
-        @stack.push ret
-        eval_core(xs, &bk)
-      end
-    else
-      @stack.push x
-      eval_core(xs, &bk)
-    end
-  end
-
-  def parse_symbol_sub(s, em)
-    @primitive_run += 1
-    if    EMEHCS2_FUNC_TABLE.key? s
-      em ? send(EMEHCS2_FUNC_TABLE[s]) : @stack.push(s)             # プリミティブ関数実行1
-    elsif EMEHCS2_FUNC_TABLE.key? @env[s]
-      em ? send(EMEHCS2_FUNC_TABLE[@env[s]]) : @stack.push(@env[s]) # プリミティブ関数実行2
-    end
-    @primitive_run -= 1
-  end
-
   def parse_symbol(s, xs, em = xs.empty?, name = s[1..], &bk)
-    # if EMEHCS2_FUNC_TABLE.key?(s) || EMEHCS2_FUNC_TABLE.key?(@env[s])
-    #   parse_symbol_sub s, em
-    #   eval_core xs
     if em && (s == '+' || @env[s] == '+')
       @primitive_run += 1
       eval_core([pop_raise]) do |y1|
@@ -178,6 +77,49 @@ class Emehcs2 < EmehcsBase2
       end
     else
       @stack.push @env[s] # s が変数名
+      eval_core(xs, &bk)
+    end
+  end
+end
+
+# Emehcs2 クラス 相互に呼び合っているから、継承しかないじゃん
+class Emehcs2 < EmehcsBase2
+  alias read_ eval
+
+  # Expr = Int | Sym | [Expr]
+  def read(str) = read_ str.gsub(' ', ', ')
+  def show(expr) = expr.to_s.gsub(',', '')
+
+  def run(str)
+    @stack = []
+    eval_core(read(str)) { |ret| @out = ret }
+    show @out
+  end
+
+  # メインルーチン、 code は Array、末尾再帰を実現
+  def eval_core(code, &bk)
+    case code
+    in [] then yield @stack.pop # yield はこの一ヶ所のみ
+    in [x, *xs]
+      case x
+      in Integer then @stack.push x; eval_core(xs, &bk)
+      in Array   then parse_array  x,      xs, &bk
+      in Symbol  then parse_symbol x.to_s, xs, &bk # 親クラスへ
+      else raise ERROR_MESSAGES[:unexpected_type]
+      end
+    end
+  end
+
+  private
+
+  def parse_array(x, xs, em = xs.empty?, &bk)
+    if em && func?(x)
+      eval_core(x) do |ret|
+        @stack.push ret
+        eval_core(xs, &bk)
+      end
+    else
+      @stack.push x
       eval_core(xs, &bk)
     end
   end

@@ -26,7 +26,6 @@ module Const
     'timer1' => :timer1,
     'timer2' => :timer2,
     'cmd'    => :cmd,
-    # 'list'   => :list は直接呼び出す
     'eval'   => :eval,
     'eq2'    => :eq2
   }.freeze
@@ -40,22 +39,6 @@ module Const
   def pop_raise = (pr = @stack.pop; raise ERROR_MESSAGES[:insufficient_args] if pr.nil?; pr)
   # func?
   def func?(x)  = x.is_a?(Array) && x.last != :q
-
-  # 遅延評価
-  class Delay
-    def initialize(&fn)
-      @func = fn
-    end
-
-    def force
-      @func.call
-    end
-
-    def self.trcall(value)
-      value = value.force while value.is_a?(Delay)
-      value
-    end
-  end
 
   # Const クラス
   class Const
