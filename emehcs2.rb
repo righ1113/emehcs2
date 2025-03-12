@@ -89,7 +89,7 @@ class Emehcs2 < EmehcsBase2
 
   private
 
-  # メインルーチン、 code は Array
+  # メインルーチン、 code は Array、末尾再帰を実現
   def eval_core(code, &bk)
     case code
     in [] then yield @stack.pop
@@ -159,10 +159,8 @@ class Emehcs2 < EmehcsBase2
       end
     elsif s[0] == 'F' # 関数束縛
       ret = pop_raise
-      # puts "hoge3: #{name}, #{@env[name]}, #{ret}"
       ret.map! { |x| x == name.to_sym ? @env[name] : x } if @env[name].is_a?(Integer)
       @env[name] = ret
-      @stack.push name if em # REPL に関数名を出力する
       eval_core(xs, &bk)
     elsif @env[s].is_a?(Array)
       # name が Array を参照しているときも、Array の最後だったら実行する、でなければ実行せずに積む
@@ -175,12 +173,11 @@ class Emehcs2 < EmehcsBase2
           eval_core(xs, &bk)
         end
       else
-        # puts "hoge2: #{s}, #{em}, #{@env[s]}"
         @stack.push Const.deep_copy @env[s]
         eval_core(xs, &bk)
       end
     else
-      @stack.push @env[s] # ふつうの name
+      @stack.push @env[s] # s が変数名
       eval_core(xs, &bk)
     end
   end
