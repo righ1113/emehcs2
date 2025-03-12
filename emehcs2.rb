@@ -183,11 +183,36 @@ class Emehcs2 < EmehcsBase2
   end
 end
 
+# Trcall クラス
+class Trcall < Emehcs2
+  def initialize(name)
+    super()
+    alias hoo eval
+    @first = true
+    hoo <<"DEF"
+    def #{name}(*args)
+      if @first
+        @first = false
+        value = super(*args)
+        while value.instance_of?(Proc)
+          value = value.call
+        end
+        @first = true
+        value
+      else
+        proc { super(*args) }
+      end
+    end
+DEF
+  end
+end
+
 # メイン関数としたもの
 if __FILE__ == $PROGRAM_NAME
-  emehcs2 = Emehcs2.new
+  tr = Trcall.new(:eval_core)
   # p emehcs2.read('[[3 4 5] 1 2 :+]')
   # p emehcs2.show([3, 4, :foo])
   # p emehcs2.run('[3 4 :+]')
-  p emehcs2.run '[[:Fx [[:x 1 :+] :g] :x [:x 200 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
+  str = '[[:Fx [[:x 1 :+] :g] :x [:x 200 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
+  tr.eval_core(tr.read(str)) { |ret| puts tr.show ret }
 end
