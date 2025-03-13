@@ -5,12 +5,20 @@ module Const
   READLINE_HIST_FILE  = './data/.readline_history'
   PRELUDE_FILE        = './data/prelude.eme'
   EMEHCS2_VERSION     = 'emehcs2 version 0.1.0'
-  EMEHCS2_FUNC_TABLE  = {
+  EMEHCS2_FUNC_TABLE1 = {
+    'error'  => :error,
+    'car'    => :car,
+    'cdr'    => :cdr,
+    'chr'    => :chr,
+    'length' => :length
+  }.freeze
+  EMEHCS2_FUNC_TABLE2 = {
     # 'if'     => :my_if,
     '=='     => :eq,
     '+'      => :plus,
 
-    # '-'      => :minus,
+    '!='     => :ne,
+    '-'      => :minus,
     # '*'      => :mul,
     # '/'      => :div,
     # 'mod'    => :mod,
@@ -18,10 +26,8 @@ module Const
     'cons'   => :cons,
     # 's.++'   => :s_append,
     # 'sample' => :my_sample,
-    'error'  => :error,
-    'car'    => :car,
-    'cdr'    => :cdr,
-    'eq2'    => :eq2
+    'idx_a'  => :index_a,
+    'idx_s'  => :index_s
   }.freeze
 
   ERROR_MESSAGES = {
@@ -29,8 +35,23 @@ module Const
     unexpected_type:   '予期しない型'
   }.freeze
 
-  def eq(y1, y2)   = @stack.push y2 == y1 ? 'true' : 'false'
-  def plus(y1, y2) = @stack.push y1 + y2
+  def error(y1)       = @stack.push raise y1.to_s
+  def car(y1)         = @stack.push y1[0]
+  def cdr(y1)         = @stack.push y1[1..]
+  def chr(y1)         = @stack.push y1.chr
+  def length(y1)      = @stack.push y1.length
+
+  def eq(y1, y2)      = @stack.push y2.to_s == y1.to_s ? 'true' : 'false'
+  def plus(y1, y2)    = @stack.push y1 + y2
+  def ne(y1, y2)      = @stack.push y2.to_s != y1.to_s ? 'true' : 'false'
+  def minus(y1, y2)   = @stack.push y2 - y1
+  def cons(y1, y2)    = @stack.push y2.unshift(y1)
+  def index_a(y1, y2) = @stack.push y2[y1]
+
+  def index_s(y1, y2)
+    p "#{y2}, #{y1}"
+    @stack.push y2[y1].to_sym
+  end
 
   # pop_raise
   def pop_raise = (pr = @stack.pop; raise ERROR_MESSAGES[:insufficient_args] if pr.nil?; pr)

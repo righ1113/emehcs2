@@ -28,13 +28,31 @@ class EmehcsBase2
   private
 
   def parse_symbol(s, xs, em = xs.empty?, name = s[1..], &bk)
-    if em && EMEHCS2_FUNC_TABLE.key?(s)
+    if em && EMEHCS2_FUNC_TABLE1.key?(s)
+      @primitive_run += 1
+      eval_core([pop_raise]) do |y1|
+        send(EMEHCS2_FUNC_TABLE1[s], y1) # 各プリミティブ関数実行_引数1
+        @primitive_run -= 1
+        eval_core(xs, &bk)
+      end
+    elsif em && EMEHCS2_FUNC_TABLE2.key?(s)
       @primitive_run += 1
       eval_core([pop_raise]) do |y1|
         eval_core([pop_raise]) do |y2|
-          send(EMEHCS2_FUNC_TABLE[s], y1, y2) # 各プリミティブ関数実行_引数2
+          send(EMEHCS2_FUNC_TABLE2[s], y1, y2) # 各プリミティブ関数実行_引数2
           @primitive_run -= 1
           eval_core(xs, &bk)
+        end
+      end
+    elsif em && s == 'up_p'
+      @primitive_run += 1
+      eval_core([pop_raise]) do |y1|
+        eval_core([pop_raise]) do |y2|
+          eval_core([pop_raise]) do |y3|
+            y3[y2] += y1; @stack.push y3
+            @primitive_run -= 1
+            eval_core(xs, &bk)
+          end
         end
       end
     elsif em && s == 'if'
@@ -64,7 +82,9 @@ class EmehcsBase2
       end
     elsif s[0] == 'F' # 関数束縛
       ret = pop_raise
-      ret.map! { |x| x == name.to_sym ? @env[name] : x } if @env[name].is_a?(Integer)
+      if ret.is_a?(Array) && (@env[name].is_a?(Integer) || @env[name].is_a?(Symbol))
+        ret.map! { |x| x == name.to_sym ? @env[name] : x }
+      end
       @env[name] = ret
       eval_core(xs, &bk)
     elsif @env[s].is_a?(Array)
@@ -85,7 +105,7 @@ class EmehcsBase2
       @stack.push @env[s] # s が変数名
       eval_core(xs, &bk)
     else
-      @stack.push s
+      @stack.push s.to_sym
       eval_core(xs, &bk) # 純粋シンボル
     end
   end
@@ -97,6 +117,7 @@ class Emehcs2 < EmehcsBase2
 
   # Expr = Int | Sym | [Expr]
   def read(str) = read_ str.gsub(' ', ', ')
+  def read2(str) = read_ str
   def show(expr) = expr.to_s.gsub(',', '')
 
   def run(str)
@@ -114,7 +135,8 @@ class Emehcs2 < EmehcsBase2
       in Integer then @stack.push x; eval_core(xs, &bk)
       in Array   then parse_array  x,      xs, &bk
       in Symbol  then parse_symbol x.to_s, xs, &bk # 親クラスへ
-      else raise ERROR_MESSAGES[:unexpected_type]
+      # in String  then @stack.push x; eval_core(xs, &bk)
+      else raise "予期しない型 #{x}"
       end
     end
   end
@@ -161,9 +183,9 @@ end
 # メイン関数としたもの
 if __FILE__ == $PROGRAM_NAME
   tr = Trcall.new(:eval_core)
-  # p emehcs2.read('[[3 4 5] 1 2 :+]')
-  # p emehcs2.show([3, 4, :foo])
-  # p emehcs2.run('[3 4 :+]')
-  str = '[[:Fx [[:x 1 :+] :g] :x [:x 200 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
-  tr.eval_core(tr.read(str)) { |ret| puts tr.show ret }
+  4.times do |cnt|
+    # str = '[[:Fx [[:x 1 :+] :g] :x [:x 200 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
+    str = File.read("sample/bf#{cnt}.eme")
+    tr.eval_core(tr.read2(str)) { |ret| puts tr.show ret }
+  end
 end

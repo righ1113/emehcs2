@@ -1,5 +1,5 @@
-(=pro =i =stop =sign ={} =d
-  (pro i !!) =pro_i
-    ((d (d sign -) (pro_i "}" ==) ?) (d sign +) (pro_i "{" ==) ?) =d2
-      (d2 {} sign stop (i sign +) pro z) >rec
-        (rec ("pro_edge" error) (i stop ==) ?) i ((d 0 ==) (pro_i {} ==) &&) ?) >z
+[[:Fpro, :Fi, :Fstop, :Fsign, :Fbrk, :Fd,
+  [:pro, :i, :idx_s], :Fpro_i,
+    [[:d, [:d, :sign, :-], [:pro_i, :"}", :==], :if], [:d, :sign, :+], [:pro_i, :"{", :==], :if], :Fd2,
+      [:d2, :brk, :sign, :stop, [:i, :sign, :+], :pro, :z], :Frec,
+        [:rec, [:"pro_edge", :error], [:i, :stop, :==], :if], :i, [[:d, 0, :==], [:pro_i, :brk, :==], :and], :if], :Fz]
