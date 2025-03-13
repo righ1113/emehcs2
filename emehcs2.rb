@@ -28,25 +28,16 @@ class EmehcsBase2
   private
 
   def parse_symbol(s, xs, em = xs.empty?, name = s[1..], &bk)
-    if em && (s == '+' || @env[s] == '+')
+    if em && EMEHCS2_FUNC_TABLE.key?(s)
       @primitive_run += 1
       eval_core([pop_raise]) do |y1|
         eval_core([pop_raise]) do |y2|
-          @stack.push y1 + y2
+          send(EMEHCS2_FUNC_TABLE[s], y1, y2) # 各プリミティブ関数実行_引数2
           @primitive_run -= 1
           eval_core(xs, &bk)
         end
       end
-    elsif em && (s == '==' || @env[s] == '==')
-      @primitive_run += 1
-      eval_core([pop_raise]) do |y1|
-        eval_core([pop_raise]) do |y2|
-          @stack.push y2 == y1 ? 'true' : 'false'
-          @primitive_run -= 1
-          eval_core(xs, &bk)
-        end
-      end
-    elsif em && (s == 'if' || @env[s] == 'if')
+    elsif em && s == 'if'
       @primitive_run += 1
       eval_core([pop_raise]) do |y1|
         @stack.pop if y1 == 'false'
@@ -56,7 +47,7 @@ class EmehcsBase2
           eval_core(xs, &bk)
         end
       end
-    elsif em && (s == 'and' || @env[s] == 'and')
+    elsif em && s == 'and'
       @primitive_run += 1
       eval_core([pop_raise]) do |y1|
         if y1 == 'false'

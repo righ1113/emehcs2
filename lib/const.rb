@@ -6,27 +6,21 @@ module Const
   PRELUDE_FILE        = './data/prelude.eme'
   EMEHCS2_VERSION     = 'emehcs2 version 0.1.0'
   EMEHCS2_FUNC_TABLE  = {
-    'if'     => :my_if,
+    # 'if'     => :my_if,
     '=='     => :eq,
     '+'      => :plus,
 
-    '-'      => :minus,
-    '*'      => :mul,
-    '/'      => :div,
-    'mod'    => :mod,
-    '<'      => :lt,
-    'true'   => :my_true,
-    'false'  => :my_false,
+    # '-'      => :minus,
+    # '*'      => :mul,
+    # '/'      => :div,
+    # 'mod'    => :mod,
+    # '<'      => :lt,
     'cons'   => :cons,
-    's.++'   => :s_append,
-    'sample' => :my_sample,
+    # 's.++'   => :s_append,
+    # 'sample' => :my_sample,
     'error'  => :error,
     'car'    => :car,
     'cdr'    => :cdr,
-    'timer1' => :timer1,
-    'timer2' => :timer2,
-    'cmd'    => :cmd,
-    'eval'   => :eval,
     'eq2'    => :eq2
   }.freeze
 
@@ -34,6 +28,9 @@ module Const
     insufficient_args: '引数が不足しています',
     unexpected_type:   '予期しない型'
   }.freeze
+
+  def eq(y1, y2)   = @stack.push y2 == y1 ? 'true' : 'false'
+  def plus(y1, y2) = @stack.push y1 + y2
 
   # pop_raise
   def pop_raise = (pr = @stack.pop; raise ERROR_MESSAGES[:insufficient_args] if pr.nil?; pr)
