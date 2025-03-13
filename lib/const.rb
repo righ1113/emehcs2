@@ -42,14 +42,19 @@ module Const
   def length(y1)      = @stack.push y1.length
 
   def eq(y1, y2)      = @stack.push y2.to_s == y1.to_s ? 'true' : 'false'
-  def plus(y1, y2)    = @stack.push y1 + y2
+
+  def plus(y1, y2)
+    # p "<y2>:#{y2}, <y1>:#{y1}"
+    @stack.push y1 + y2
+  end
+
   def ne(y1, y2)      = @stack.push y2.to_s != y1.to_s ? 'true' : 'false'
   def minus(y1, y2)   = @stack.push y2 - y1
   def cons(y1, y2)    = @stack.push y2.unshift(y1)
   def index_a(y1, y2) = @stack.push y2[y1]
 
   def index_s(y1, y2)
-    p "#{y2}, #{y1}"
+    # p "#{@env}, <y2>:#{y2}, <y1>:#{y1}"
     @stack.push y2[y1].to_sym
   end
 

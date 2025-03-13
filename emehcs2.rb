@@ -49,7 +49,17 @@ class EmehcsBase2
       eval_core([pop_raise]) do |y1|
         eval_core([pop_raise]) do |y2|
           eval_core([pop_raise]) do |y3|
-            y3[y2] += y1; @stack.push y3
+            begin
+              if y1.is_a?(Symbol) || y2.is_a?(Symbol) || y3.is_a?(Symbol) || y3[y2].is_a?(Symbol)
+                p 'aaaaaaaaa'
+                @stack.push 0
+              else
+                y3[y2] += y1; @stack.push y3
+              end
+            rescue StandardError => e
+              p e
+              @stack.push 0
+            end
             @primitive_run -= 1
             eval_core(xs, &bk)
           end
@@ -82,12 +92,23 @@ class EmehcsBase2
       end
     elsif s[0] == 'F' # 関数束縛
       ret = pop_raise
-      if ret.is_a?(Array) && (@env[name].is_a?(Integer) || @env[name].is_a?(Symbol))
+      if func?(ret) && (@env[name].is_a?(Integer) || @env[name].is_a?(Symbol))
         ret.map! { |x| x == name.to_sym ? @env[name] : x }
       end
       @env[name] = ret
       eval_core(xs, &bk)
-    elsif @env[s].is_a?(Array)
+    elsif s[0] == 'V' # (3) 変数束縛
+      ret1 = pop_raise
+      if func? ret1
+        eval_core(ret1) do |ret2|
+          @env[name] = ret2
+          eval_core(xs, &bk)
+        end
+      else
+        @env[name] = ret1
+        eval_core(xs, &bk)
+      end
+    elsif func?(@env[s])
       # name が Array を参照しているときも、Array の最後だったら実行する、でなければ実行せずに積む
       if em || !@primitive_run.zero?
         # input = Const.deep_copy @env[s]
