@@ -3,7 +3,7 @@ AllCops:
 
 MethodLength:
   CountComments: false
-  Max: 100
+  Max: 150
 
 UselessAssignment:
   Enabled: false

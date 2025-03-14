@@ -20,7 +20,7 @@ require './lib/const'
 class EmehcsBase2
   include Const
   def initialize
-    @env   = {}
+    @env   = { 'true' => 'true', 'false' => 'false' }
     @stack = []
     @primitive_run = 0
   end
@@ -28,6 +28,7 @@ class EmehcsBase2
   private
 
   def parse_symbol(s, xs, em = xs.empty?, name = s[1..], &bk)
+    s == 'pc' && puts("pc: #{@env[s]}")
     if em && EMEHCS2_FUNC_TABLE1.key?(s)
       @primitive_run += 1
       eval_core([pop_raise]) do |y1|
@@ -80,11 +81,13 @@ class EmehcsBase2
       eval_core([pop_raise]) do |y1|
         if y1 == 'false'
           @stack.push 'false'
+          puts "and: y1 = false, #{@env['pc']}"
           @primitive_run -= 1
           eval_core(xs, &bk)
         else
           eval_core([pop_raise]) do |y2|
             @stack.push y2
+            puts "and: y2 = #{y2}"
             @primitive_run -= 1
             eval_core(xs, &bk)
           end
