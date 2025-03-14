@@ -28,7 +28,7 @@ class EmehcsBase2
   private
 
   def parse_symbol(s, xs, em = xs.empty?, name = s[1..], &bk)
-    s == 'pc' && puts("pc: #{@env[s]}")
+    s == 'pc' && puts("pc: #{@env[s]}, mem: #{@env['mem']}")
     if em && EMEHCS2_FUNC_TABLE1.key?(s)
       @primitive_run += 1
       eval_core([pop_raise]) do |y1|
@@ -58,7 +58,7 @@ class EmehcsBase2
                 y3[y2] += y1; @stack.push y3
               end
             rescue StandardError => e
-              p e
+              puts "#{y3}, #{e}"
               @stack.push 0
             end
             @primitive_run -= 1
