@@ -80,6 +80,7 @@ class EmehcsBase2
       @primitive_run += 1
       eval_core([pop_raise]) do |y1|
         if y1 == 'false'
+          pop_raise
           @stack.push 'false'
           puts "and: y1 = false, #{@env['pc']}"
           @primitive_run -= 1

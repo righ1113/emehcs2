@@ -38,7 +38,7 @@ module Const
   def error(y1)       = @stack.push raise y1.to_s
   def car(y1)         = @stack.push y1[0]
   def cdr(y1)         = @stack.push y1[1..]
-  def chr(y1)         = @stack.push y1.chr
+  def chr(y1)         = (z = y1 % 256; @stack.push z.chr)
   def length(y1)      = @stack.push y1.length
 
   def eq(y1, y2)      = @stack.push y2 == y1 ? 'true' : 'false'
