@@ -81,10 +81,10 @@ class EmehcsBase2
           end
         end
       end
-    elsif s[0] == 'F' # 関数束縛
+    elsif s[0] == '>' # 関数束縛
       @env[name] = pop_raise
       eval_core xs, &bk
-    elsif s[0] == 'V' # 変数束縛
+    elsif s[0] == '=' # 変数束縛
       ret1 = pop_raise
       if func? ret1
         eval_core ret1 do |ret2|
@@ -187,7 +187,7 @@ end
 # メイン関数としたもの
 if __FILE__ == $PROGRAM_NAME
   tr = Trcall.new(:eval_core)
-  # str = '[[:Vx [[:x 1 :+] :g] :x [:x 200 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
+  # str = '[[:=x [[:x 1 :+] :g] :x [:x 200 :==] :if] :>g 0 :g]' # スタックオーバーフローを回避
   str = File.read('sample/bf.eme')
   tr.eval_core(tr.read2(str)) { |ret| puts tr.show ret }
 end
