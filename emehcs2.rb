@@ -12,12 +12,13 @@
 
 # require 'time'
 require './lib/const'
-# require './lib/parse2_core'
+require './lib/parse2_core'
 # require './lib/repl'
 
 # EmehcsBase2 クラス
 class EmehcsBase2
   include Const
+  include Parse2Core
   def initialize
     @env           = {}
     @stack         = []
@@ -121,7 +122,7 @@ class Emehcs2 < EmehcsBase2
 
   # Expr = Int | Sym | [Expr]
   def read(str)  = read_ str.gsub(' ', ', ')
-  def read2(str) = read_ str
+  def read2(str) = parse2_core str
   def show(expr) = expr.to_s.gsub(',', '')
 
   def run(str)
