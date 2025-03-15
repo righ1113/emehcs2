@@ -28,7 +28,9 @@ class EmehcsBase2
   private
 
   def parse_symbol(s, xs, em = xs.empty?, name = s[1..], &bk)
-    s == 'pc' && puts("pc: #{@env[s]}, mem: #{@env['mem']}")
+    s == 'pc' && puts("pc: #{@env[s]}, mar: #{@env['mar']}, mem: #{@env['mem']}")
+    raise 'gyaaaaaaaaaa' if @env['mem'].is_a?(Integer)
+
     if em && EMEHCS2_FUNC_TABLE1.key?(s)
       @primitive_run += 1
       eval_core([pop_raise]) do |y1|
@@ -52,7 +54,7 @@ class EmehcsBase2
           eval_core([pop_raise]) do |y3|
             begin
               if y1.is_a?(Symbol) || y2.is_a?(Symbol) || y3.is_a?(Symbol) || y3[y2].is_a?(Symbol)
-                p 'aaaaaaaaa'
+                p "aaaaaaaaa #{y3}, #{y2}, #{y1}"
                 @stack.push 0
               else
                 y3[y2] += y1; @stack.push y3
@@ -82,13 +84,13 @@ class EmehcsBase2
         if y1 == 'false'
           pop_raise
           @stack.push 'false'
-          puts "and: y1 = false, #{@env['pc']}"
+          puts "and: y1 = false, #{@env['pc']}, pro_i = #{@env['pro_i']}"
           @primitive_run -= 1
           eval_core(xs, &bk)
         else
           eval_core([pop_raise]) do |y2|
             @stack.push y2
-            puts "and: y2 = #{y2}"
+            puts "and: y2 = #{y2}, pro_i = #{@env['pro_i']}"
             @primitive_run -= 1
             eval_core(xs, &bk)
           end
@@ -96,9 +98,9 @@ class EmehcsBase2
       end
     elsif s[0] == 'F' # 関数束縛
       ret = pop_raise
-      if func?(ret) && (@env[name].is_a?(Integer) || @env[name].is_a?(Symbol))
-        ret.map! { |x| x == name.to_sym ? @env[name] : x }
-      end
+      # if func?(ret) && (@env[name].is_a?(Integer) || @env[name].is_a?(Symbol))
+      #   ret.map! { |x| x == name.to_sym ? @env[name] : x }
+      # end
       @env[name] = ret
       eval_core(xs, &bk)
     elsif s[0] == 'V' # (3) 変数束縛
@@ -118,7 +120,7 @@ class EmehcsBase2
         # input = Const.deep_copy @env[s]
         # input = input.to_sym if input.is_a?(String)
         eval_core(Const.deep_copy(@env[s])) do |ret2|
-          @env[s] = ret2
+          # @env[s] = ret2
           @stack.push ret2
           eval_core(xs, &bk)
         end
