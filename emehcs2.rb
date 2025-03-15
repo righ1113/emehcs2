@@ -27,7 +27,7 @@ class EmehcsBase2
   private
 
   def parse_symbol(s, xs, em = xs.empty?, name = s[1..], &bk)
-    if em && EMEHCS2_FUNC_TABLE1.key?(s)
+    if    em && EMEHCS2_FUNC_TABLE1.key?(s)
       @primitive_run += 1
       eval_core [pop_raise] do |y1|
         send(EMEHCS2_FUNC_TABLE1[s], y1) # 各プリミティブ関数実行_引数1
