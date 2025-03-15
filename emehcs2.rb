@@ -28,7 +28,7 @@ class EmehcsBase2
   private
 
   def parse_symbol(s, xs, em = xs.empty?, name = s[1..], &bk)
-    s == 'pc' && puts("pc: #{@env[s]}, mar: #{@env['mar']}, mem: #{@env['mem']}")
+    # s == 'pc' && puts("pc: #{@env[s]}, mar: #{@env['mar']}, mem: #{@env['mem']}")
     raise 'gyaaaaaaaaaa' if @env['mem'].is_a?(Integer)
 
     if em && EMEHCS2_FUNC_TABLE1.key?(s)
@@ -84,13 +84,13 @@ class EmehcsBase2
         if y1 == 'false'
           pop_raise
           @stack.push 'false'
-          puts "and: y1 = false, #{@env['pc']}, pro_i = #{@env['pro_i']}"
+          # puts "and: y1 = false, #{@env['pc']}, pro_i = #{@env['pro_i']}"
           @primitive_run -= 1
           eval_core(xs, &bk)
         else
           eval_core([pop_raise]) do |y2|
             @stack.push y2
-            puts "and: y2 = #{y2}, pro_i = #{@env['pro_i']}"
+            # puts "and: y2 = #{y2}, pro_i = #{@env['pro_i']}"
             @primitive_run -= 1
             eval_core(xs, &bk)
           end
@@ -211,7 +211,7 @@ end
 if __FILE__ == $PROGRAM_NAME
   tr = Trcall.new(:eval_core)
   4.times do |cnt|
-    # str = '[[:Fx [[:x 1 :+] :g] :x [:x 200 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
+    # str = '[[:Vx [[:x 1 :+] :g] :x [:x 200 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
     str = File.read("sample/bf#{cnt}.eme")
     tr.eval_core(tr.read2(str)) { |ret| puts tr.show ret }
   end

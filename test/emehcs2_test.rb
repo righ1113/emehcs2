@@ -13,7 +13,7 @@ class Emehcs2Test < Minitest::Test
     code2 = [3, 4, :foo]
     code3 = '[3 4 :+]'
     code4 = '[3 [3 4 :+] :+]'
-    code5 = '[[:Fx [[:x 1 :+] :g] :x [:x 100 :==] :if] :Fg 0 :g]'
+    code5 = '[[:Vx [[:x 1 :+] :g] :x [:x 100 :==] :if] :Fg 0 :g]'
 
     emehcs2 = Emehcs2.new
     assert_equal [[3, 4, 5], 1, 2, :+], (emehcs2.read code1)
