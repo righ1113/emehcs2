@@ -9,7 +9,6 @@
 # ・実行方法
 # $ cd emehcs2
 # $ bundle exec ruby emehcs2.rb
-# > [ctrl]+D か exit で終了
 
 # require 'time'
 require './lib/const'
@@ -20,7 +19,7 @@ require './lib/const'
 class EmehcsBase2
   include Const
   def initialize
-    @env   = { 'true' => 'true', 'false' => 'false' }
+    @env   = {}
     @stack = []
     @primitive_run = 0
   end
@@ -28,9 +27,6 @@ class EmehcsBase2
   private
 
   def parse_symbol(s, xs, em = xs.empty?, name = s[1..], &bk)
-    # s == 'pc' && puts("pc: #{@env[s]}, mar: #{@env['mar']}, mem: #{@env['mem']}")
-    raise 'gyaaaaaaaaaa' if @env['mem'].is_a?(Integer)
-
     if em && EMEHCS2_FUNC_TABLE1.key?(s)
       @primitive_run += 1
       eval_core([pop_raise]) do |y1|
@@ -52,17 +48,7 @@ class EmehcsBase2
       eval_core([pop_raise]) do |y1|
         eval_core([pop_raise]) do |y2|
           eval_core([pop_raise]) do |y3|
-            begin
-              if y1.is_a?(Symbol) || y2.is_a?(Symbol) || y3.is_a?(Symbol) || y3[y2].is_a?(Symbol)
-                p "aaaaaaaaa #{y3}, #{y2}, #{y1}"
-                @stack.push 0
-              else
-                y3[y2] += y1; @stack.push y3
-              end
-            rescue StandardError => e
-              puts "#{y3}, #{e}"
-              @stack.push 0
-            end
+            y3[y2] += y1; @stack.push y3
             @primitive_run -= 1
             eval_core(xs, &bk)
           end
@@ -84,26 +70,20 @@ class EmehcsBase2
         if y1 == 'false'
           pop_raise
           @stack.push 'false'
-          # puts "and: y1 = false, #{@env['pc']}, pro_i = #{@env['pro_i']}"
           @primitive_run -= 1
           eval_core(xs, &bk)
         else
           eval_core([pop_raise]) do |y2|
             @stack.push y2
-            # puts "and: y2 = #{y2}, pro_i = #{@env['pro_i']}"
             @primitive_run -= 1
             eval_core(xs, &bk)
           end
         end
       end
     elsif s[0] == 'F' # 関数束縛
-      ret = pop_raise
-      # if func?(ret) && (@env[name].is_a?(Integer) || @env[name].is_a?(Symbol))
-      #   ret.map! { |x| x == name.to_sym ? @env[name] : x }
-      # end
-      @env[name] = ret
+      @env[name] = pop_raise
       eval_core(xs, &bk)
-    elsif s[0] == 'V' # (3) 変数束縛
+    elsif s[0] == 'V' # 変数束縛
       ret1 = pop_raise
       if func? ret1
         eval_core(ret1) do |ret2|
@@ -117,10 +97,7 @@ class EmehcsBase2
     elsif func?(@env[s])
       # name が Array を参照しているときも、Array の最後だったら実行する、でなければ実行せずに積む
       if em || !@primitive_run.zero?
-        # input = Const.deep_copy @env[s]
-        # input = input.to_sym if input.is_a?(String)
         eval_core(Const.deep_copy(@env[s])) do |ret2|
-          # @env[s] = ret2
           @stack.push ret2
           eval_core(xs, &bk)
         end
@@ -162,7 +139,6 @@ class Emehcs2 < EmehcsBase2
       in Integer then @stack.push x; eval_core(xs, &bk)
       in Array   then parse_array  x,      xs, &bk
       in Symbol  then parse_symbol x.to_s, xs, &bk # 親クラスへ
-      # in String  then @stack.push x; eval_core(xs, &bk)
       else raise "予期しない型 #{x}"
       end
     end
