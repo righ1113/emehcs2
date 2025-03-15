@@ -1,5 +1,5 @@
 (Vpro Vi Vstop Vsign Vbrk Vd
   (pro i idx_s) Vpro_i
-    ((d (d sign -) (pro_i "}" ==) if) (d sign +) (pro_i "{" ==) if) Vd2
-      (d2 brk sign stop (i sign +) pro z) Frec
-        (rec ("pro_edge" error) (i stop ==) if) i ((d 0 ==) (pro_i brk ==) and) if) Fz
+    ((d (d sign -) (pro_i "}" ==) if) (d sign +) (pro_i "{" ==) if)
+      (brk sign stop (i sign +) pro z)
+        (("pro_edge" error) (i stop ==) if) i ((d 0 ==) (pro_i brk ==) and) if) Fz
