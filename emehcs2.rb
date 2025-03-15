@@ -19,8 +19,8 @@ require './lib/const'
 class EmehcsBase2
   include Const
   def initialize
-    @env   = {}
-    @stack = []
+    @env           = {}
+    @stack         = []
     @primitive_run = 0
   end
 
@@ -29,88 +29,88 @@ class EmehcsBase2
   def parse_symbol(s, xs, em = xs.empty?, name = s[1..], &bk)
     if em && EMEHCS2_FUNC_TABLE1.key?(s)
       @primitive_run += 1
-      eval_core([pop_raise]) do |y1|
+      eval_core [pop_raise] do |y1|
         send(EMEHCS2_FUNC_TABLE1[s], y1) # 各プリミティブ関数実行_引数1
         @primitive_run -= 1
-        eval_core(xs, &bk)
+        eval_core xs, &bk
       end
     elsif em && EMEHCS2_FUNC_TABLE2.key?(s)
       @primitive_run += 1
-      eval_core([pop_raise]) do |y1|
-        eval_core([pop_raise]) do |y2|
+      eval_core [pop_raise] do |y1|
+        eval_core [pop_raise] do |y2|
           send(EMEHCS2_FUNC_TABLE2[s], y1, y2) # 各プリミティブ関数実行_引数2
           @primitive_run -= 1
-          eval_core(xs, &bk)
+          eval_core xs, &bk
         end
       end
     elsif em && s == 'up_p'
       @primitive_run += 1
-      eval_core([pop_raise]) do |y1|
-        eval_core([pop_raise]) do |y2|
-          eval_core([pop_raise]) do |y3|
+      eval_core [pop_raise] do |y1|
+        eval_core [pop_raise] do |y2|
+          eval_core [pop_raise] do |y3|
             y3[y2] += y1; @stack.push y3
             @primitive_run -= 1
-            eval_core(xs, &bk)
+            eval_core xs, &bk
           end
         end
       end
     elsif em && s == 'if'
       @primitive_run += 1
-      eval_core([pop_raise]) do |y1|
+      eval_core [pop_raise] do |y1|
         @stack.pop if y1 == 'false'
-        eval_core([pop_raise]) do |y2|
+        eval_core [pop_raise] do |y2|
           @stack.push y2
           @primitive_run -= 1
-          eval_core(xs, &bk)
+          eval_core xs, &bk
         end
       end
     elsif em && s == 'and'
       @primitive_run += 1
-      eval_core([pop_raise]) do |y1|
+      eval_core [pop_raise] do |y1|
         if y1 == 'false'
           pop_raise
           @stack.push 'false'
           @primitive_run -= 1
-          eval_core(xs, &bk)
+          eval_core xs, &bk
         else
-          eval_core([pop_raise]) do |y2|
+          eval_core [pop_raise] do |y2|
             @stack.push y2
             @primitive_run -= 1
-            eval_core(xs, &bk)
+            eval_core xs, &bk
           end
         end
       end
     elsif s[0] == 'F' # 関数束縛
       @env[name] = pop_raise
-      eval_core(xs, &bk)
+      eval_core xs, &bk
     elsif s[0] == 'V' # 変数束縛
       ret1 = pop_raise
       if func? ret1
-        eval_core(ret1) do |ret2|
+        eval_core ret1 do |ret2|
           @env[name] = ret2
-          eval_core(xs, &bk)
+          eval_core xs, &bk
         end
       else
         @env[name] = ret1
-        eval_core(xs, &bk)
+        eval_core xs, &bk
       end
     elsif func?(@env[s])
       # name が Array を参照しているときも、Array の最後だったら実行する、でなければ実行せずに積む
       if em || !@primitive_run.zero?
-        eval_core(Const.deep_copy(@env[s])) do |ret2|
+        eval_core Const.deep_copy @env[s] do |ret2|
           @stack.push ret2
-          eval_core(xs, &bk)
+          eval_core xs, &bk
         end
       else
         @stack.push Const.deep_copy @env[s]
-        eval_core(xs, &bk)
+        eval_core xs, &bk
       end
     elsif !@env[s].nil?
       @stack.push @env[s] # s が変数名
-      eval_core(xs, &bk)
+      eval_core xs, &bk
     else
       @stack.push s.to_sym
-      eval_core(xs, &bk) # 純粋シンボル
+      eval_core xs, &bk # 純粋シンボル
     end
   end
 end
@@ -120,7 +120,7 @@ class Emehcs2 < EmehcsBase2
   alias read_ eval
 
   # Expr = Int | Sym | [Expr]
-  def read(str) = read_ str.gsub(' ', ', ')
+  def read(str)  = read_ str.gsub(' ', ', ')
   def read2(str) = read_ str
   def show(expr) = expr.to_s.gsub(',', '')
 
@@ -136,9 +136,9 @@ class Emehcs2 < EmehcsBase2
     in [] then yield @stack.pop # yield はこの一ヶ所のみ
     in [x, *xs]
       case x
-      in Integer then @stack.push x; eval_core(xs, &bk)
-      in Array   then parse_array  x,      xs, &bk
-      in Symbol  then parse_symbol x.to_s, xs, &bk # 親クラスへ
+      in Integer then @stack.push  x; eval_core xs, &bk
+      in Array   then parse_array  x,           xs, &bk
+      in Symbol  then parse_symbol x.to_s,      xs, &bk # 親クラスへ
       else raise "予期しない型 #{x}"
       end
     end
@@ -148,13 +148,13 @@ class Emehcs2 < EmehcsBase2
 
   def parse_array(x, xs, em = xs.empty?, &bk)
     if em && func?(x)
-      eval_core(x) do |ret|
+      eval_core x do |ret|
         @stack.push ret
-        eval_core(xs, &bk)
+        eval_core xs, &bk
       end
     else
       @stack.push x
-      eval_core(xs, &bk)
+      eval_core xs, &bk
     end
   end
 end
