@@ -187,9 +187,7 @@ end
 # メイン関数としたもの
 if __FILE__ == $PROGRAM_NAME
   tr = Trcall.new(:eval_core)
-  4.times do |cnt|
-    # str = '[[:Vx [[:x 1 :+] :g] :x [:x 200 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
-    str = File.read("sample/bf#{cnt}.eme")
-    tr.eval_core(tr.read2(str)) { |ret| puts tr.show ret }
-  end
+  # str = '[[:Vx [[:x 1 :+] :g] :x [:x 200 :==] :if] :Fg 0 :g]' # スタックオーバーフローを回避
+  str = File.read('sample/bf.eme')
+  tr.eval_core(tr.read2(str)) { |ret| puts tr.show ret }
 end

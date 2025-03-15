@@ -1,3 +1,9 @@
+(Vpro Vi Vstop Vsign Vbrk Vd
+  (pro i idx_s) Vpro_i
+    ((d (d sign -) (pro_i "}" ==) if) (d sign +) (pro_i "{" ==) if)
+      (brk sign stop (i sign +) pro z)
+        (("pro_edge" error) (i stop ==) if) i ((d 0 ==) (pro_i brk ==) and) if) Fz
+
 (Vout Vpc Vmem Vmar Vpro
   ((pro length) 1 -) Vmax
     (pro pc idx_s) Vop
@@ -11,3 +17,6 @@
                     (((mem mar 1 up_p)                    Vmem j) (op "p" ==) if)
                       (((mar 1 -)                           Vmar j) (op "<" ==) if)
                         (((mar 1 +)                           Vmar j) (op ">" ==) if)) Fbf0
+
+"pppppppp{>pppp{>pp>ppp>ppp>p<<<<m}>p>p>m>>p{<}<m}>>.>mmm.ppppppp..ppp.>>.<m.<.ppp.mmmmmm.mmmmmmmm.>>p.>pp."
+  0 [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] 0 [] bf0
