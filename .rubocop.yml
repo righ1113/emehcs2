@@ -48,3 +48,9 @@ Style/EndOfLine:
 
 Metrics/BlockNesting:
   Max: 4
+
+Security/Eval:
+  Enabled: false
+
+Style/EvalWithLocation:
+  Enabled: false

@@ -120,10 +120,8 @@ end
 
 # Emehcs2 クラス 相互に呼び合っているから、継承しかないじゃん
 class Emehcs2 < EmehcsBase2
-  alias read_ eval
-
   # Expr = Int | Sym | [Expr]
-  def read(str)  = read_ str.gsub(' ', ', ')
+  def read(str)  = eval str.gsub(' ', ', ')
   def read2(str) = parse2_core str
   def show(expr) = expr.to_s.gsub(',', '')
 
@@ -166,9 +164,8 @@ end
 class Trcall < Emehcs2
   def initialize(name)
     super()
-    alias hoo eval
     @first = true
-    hoo <<"DEF"
+    eval <<"DEF"
     def #{name}(*args)
       if @first
         @first = false
