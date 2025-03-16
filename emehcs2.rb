@@ -82,7 +82,9 @@ class EmehcsBase2
         end
       end
     elsif s[0] == '>' # 関数束縛
-      @env[name] = pop_raise
+      ret = pop_raise
+      @env[name] = ret
+      @stack.push ret
       eval_core xs, &bk
     elsif s[0] == '=' # 変数束縛
       ret1 = pop_raise
