@@ -16,8 +16,8 @@
                   (((out (mem_v chr) cons) =out ^) (op "." ==)     ?)
                     (((mem mar -1 up_p)      =mem ^) (op "m" ==)     ?)
                       (((mem mar 1 up_p)       =mem ^) (op "p" ==)     ?)
-                        (((mar 1 -)              =mar ^) (op "<" ==)     ?)
+                        (((mar 1 -)              =mar ^) (op "c" ==)     ?)
                           (((mar 1 +)              =mar ^) (op "t" ==)     ?)) >bf0
 
-"pppppppp{tpppp{tpptppptppptp<<<<m}tptptmttp{<}<m}tt.tmmm.ppppppp..ppp.tt.<m.<.ppp.mmmmmm.mmmmmmmm.ttp.tpp."
+"pppppppp{tpppp{tpptppptppptpccccm}tptptmttp{c}cm}tt.tmmm.ppppppp..ppp.tt.cm.c.ppp.mmmmmm.mmmmmmmm.ttp.tpp."
   0 [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] 0 [] bf0

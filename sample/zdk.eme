@@ -1,0 +1,8 @@
+(=out =x
+  (["zun" "doko"] sample) =which
+    (out "zun"        cons) =z
+      (out "doko"       cons) =d
+        (d   "ki_yo_shi!" cons) =k
+          ((0       d zdk)        k (3 x <) ?)
+            (((x 1 +) z zdk) (which "zun" ==) ?)) >zdk
+0 [] zdk

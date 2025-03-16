@@ -10,7 +10,8 @@ module Const
     'car'    => :car,
     'cdr'    => :cdr,
     'chr'    => :chr,
-    'length' => :length
+    'length' => :length,
+    'sample' => :my_sample
   }.freeze
   EMEHCS2_FUNC_TABLE2 = {
     # 'if'     => :my_if,
@@ -22,10 +23,9 @@ module Const
     # '*'      => :mul,
     # '/'      => :div,
     # 'mod'    => :mod,
-    # '<'      => :lt,
+    '<'      => :lt,
     'cons'   => :cons,
     # 's.++'   => :s_append,
-    # 'sample' => :my_sample,
     '!!'     => :index
   }.freeze
 
@@ -39,14 +39,17 @@ module Const
   def cdr(y1)         = @stack.push y1[1..]
   def chr(y1)         = (z = y1 % 256; @stack.push z.chr)
   def length(y1)      = @stack.push y1.length
+  def my_sample(y1)   = @stack.push y1[0..-2].sample
 
   def eq(y1, y2)      = @stack.push y2 == y1 ? 'true' : 'false'
   def plus(y1, y2)    = @stack.push y1 + y2
   def ne(y1, y2)      = @stack.push y2 != y1 ? 'true' : 'false'
   def minus(y1, y2)   = @stack.push y2 - y1
-  def cons(y1, y2)    = @stack.push y2.unshift(y1)
+  def lt(y1, y2)      = @stack.push y2 < y1 ? 'true' : 'false'
+  def cons(y1, y2)    = @stack.push Const.deep_copy(y2).unshift(y1)
 
   def index(y1, y2)
+    # puts "!!: #{y2}, #{y1}"
     ret = y2[y1]
     @stack.push ret.is_a?(Integer) ? ret : ret.to_sym
   end

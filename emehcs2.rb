@@ -188,4 +188,6 @@ if __FILE__ == $PROGRAM_NAME
   tr  = Trcall.new(:eval_core)
   str = File.read('sample/bf.eme')
   tr.eval_core(tr.read2(str)) { |ret| puts tr.show ret }
+  str = File.read('sample/zdk.eme')
+  tr.eval_core(tr.read2(str)) { |ret| puts tr.show ret }
 end
