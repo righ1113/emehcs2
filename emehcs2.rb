@@ -55,7 +55,7 @@ class EmehcsBase2
           end
         end
       end
-    elsif em && s == 'if'
+    elsif em && s == '?'
       @primitive_run += 1
       eval_core [pop_raise] do |y1|
         @stack.pop if y1 == 'false'
