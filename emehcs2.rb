@@ -65,7 +65,7 @@ class EmehcsBase2
           eval_core xs, &bk
         end
       end
-    elsif em && s == 'and'
+    elsif em && s == '&&'
       @primitive_run += 1
       eval_core [pop_raise] do |y1|
         if y1 == 'false'
@@ -140,7 +140,7 @@ class Emehcs2 < EmehcsBase2
       in Integer then @stack.push  x; eval_core xs, &bk
       in Array   then parse_array  x,           xs, &bk
       in Symbol  then parse_symbol x.to_s,      xs, &bk # 親クラスへ
-      else raise "予期しない型 #{x}"
+      else            raise "予期しない型 #{x}"
       end
     end
   end
@@ -186,8 +186,7 @@ end
 
 # メイン関数としたもの
 if __FILE__ == $PROGRAM_NAME
-  tr = Trcall.new(:eval_core)
-  # str = '[[:=x [[:x 1 :+] :g] :x [:x 200 :==] :if] :>g 0 :g]' # スタックオーバーフローを回避
+  tr  = Trcall.new(:eval_core)
   str = File.read('sample/bf.eme')
   tr.eval_core(tr.read2(str)) { |ret| puts tr.show ret }
 end
