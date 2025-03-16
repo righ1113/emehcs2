@@ -1,22 +1,22 @@
 (=pro =i =stop =sign =brk =d
-  (pro i idx_s) =pro_i
+  (pro i !!) =pro_i
     ((d (d sign -) (pro_i "}" ==) if) (d sign +) (pro_i "{" ==) if)
       (brk sign stop (i sign +) pro z)
         (("pro_edge" error) (i stop ==) if) i ((d 0 ==) (pro_i brk ==) and) if) >z
 
 (=out =pc =mem =mar =pro
   ((pro length) 1 -) =max
-    (pro pc idx_s) =op
+    (pro pc !!) =op
       (0 "{" -1 0  (pc 1 -) pro z) >move_pc2
         (0 "}" 1 max (pc 1 +) pro z) >move_pc1
           ((pro mar mem (pc 1 +) out bf0) out (pc max ==) if) >j
-            ((j) (move_pc2 =pc j) (((mem mar idx_a) 0 !=) (op "}" ==) and) if)
-                  ((move_pc1 =pc j) (((mem mar idx_a) 0 ==) (op "{" ==) and) if)
-                (((out ((mem mar idx_a) chr) cons)    =out j) (op "." ==) if)
-                  (((mem mar -1 up_p)                   =mem j) (op "m" ==) if)
-                    (((mem mar 1 up_p)                    =mem j) (op "p" ==) if)
-                      (((mar 1 -)                           =mar j) (op "<" ==) if)
-                        (((mar 1 +)                           =mar j) (op "t" ==) if)) >bf0
+            ((j) (move_pc2 =pc j) (((mem mar !!) 0 !=) (op "}" ==) and) if)
+                  ((move_pc1 =pc j) (((mem mar !!) 0 ==) (op "{" ==) and) if)
+                (((out ((mem mar !!) chr) cons)    =out j) (op "." ==) if)
+                  (((mem mar -1 up_p)                =mem j) (op "m" ==) if)
+                    (((mem mar 1 up_p)                 =mem j) (op "p" ==) if)
+                      (((mar 1 -)                        =mar j) (op "<" ==) if)
+                        (((mar 1 +)                        =mar j) (op "t" ==) if)) >bf0
 
 "pppppppp{tpppp{tpptppptppptp<<<<m}tptptmttp{<}<m}tt.tmmm.ppppppp..ppp.tt.<m.<.ppp.mmmmmm.mmmmmmmm.ttp.tpp."
   0 [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] 0 [] bf0

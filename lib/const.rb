@@ -26,8 +26,7 @@ module Const
     'cons'   => :cons,
     # 's.++'   => :s_append,
     # 'sample' => :my_sample,
-    'idx_a'  => :index_a,
-    'idx_s'  => :index_s
+    '!!'     => :index
   }.freeze
 
   ERROR_MESSAGES = {
@@ -42,20 +41,14 @@ module Const
   def length(y1)      = @stack.push y1.length
 
   def eq(y1, y2)      = @stack.push y2 == y1 ? 'true' : 'false'
-
-  def plus(y1, y2)
-    # p "<y2>:#{y2}, <y1>:#{y1}"
-    @stack.push y1 + y2
-  end
-
+  def plus(y1, y2)    = @stack.push y1 + y2
   def ne(y1, y2)      = @stack.push y2 != y1 ? 'true' : 'false'
   def minus(y1, y2)   = @stack.push y2 - y1
   def cons(y1, y2)    = @stack.push y2.unshift(y1)
-  def index_a(y1, y2) = @stack.push y2[y1]
 
-  def index_s(y1, y2)
-    # p "#{@env}, <y2>:#{y2}, <y1>:#{y1}"
-    @stack.push y2[y1].to_sym
+  def index(y1, y2)
+    ret = y2[y1]
+    @stack.push ret.is_a?(Integer) ? ret : ret.to_sym
   end
 
   # pop_raise
