@@ -46,7 +46,7 @@ module Const
   def ne(y1, y2)      = @stack.push y2 != y1 ? 'true' : 'false'
   def minus(y1, y2)   = @stack.push y2 - y1
   def lt(y1, y2)      = @stack.push y2 < y1 ? 'true' : 'false'
-  def cons(y1, y2)    = @stack.push Const.deep_copy(y2).unshift(y1)
+  def cons(y1, y2)    = @stack.push [y1] + y2
 
   def index(y1, y2)
     # puts "!!: #{y2}, #{y1}"
